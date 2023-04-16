@@ -10,37 +10,28 @@ export default class NotionConnector {
     this.taskDB = taskDB;
   }
 
-  async createTask(title: string, tgAuthor?: string) {
-    return await this.notion.pages.create({
-      parent: {
-        database_id: this.taskDB
-      },
-      properties: {
-        Name: {
-          type: "title",
-          title: [
-            {
-              type: "text",
-              text: {
-                content: title
-              }
-            }
-          ]
-        },
-        TGAuthor: {
-          type: "rich_text",
-          rich_text: [
-            {
-              type: "text",
-              text: {
-                content: tgAuthor ?? 'Anonymous'
-              }
-            }
-          ]
-        },
-      }
+  async createTask(title?: string, tgAuthor?: string) {
+    const blockId = '636e77292d78463495494163f9e09576';
 
-    });
+    return await this.notion.blocks.children.append({
+      block_id: blockId,
+      children: [
+        {
+          object: 'block',
+          type: 'to_do',
+          to_do: {
+            rich_text: [
+              {
+                type: 'text',
+                text: {
+                  content: 'title'
+                }
+              }
+            ]
+          }
+        }
+      ]
+    })
   }
 
   convertTaskToUrl(task: CreatePageResponse) {
