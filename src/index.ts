@@ -6,10 +6,9 @@ import DatabaseConnector from './db';
 
 // initialization
 config();
-const taskDB = process.env.TASK_DB as string;
 const bot = new TelegramBot(process.env.TELEGRAM_API_TOKEN as string, { polling: true });
 const notionCLient = new Client({ auth: process.env.NOTION_API_TOKEN });
-const notion = new NotionConnector(notionCLient, taskDB);
+const notion = new NotionConnector(notionCLient);
 const db = new DatabaseConnector();
 const allowTelegramIds = process.env.TELEGRAM_ALLOW_IDS?.split(',').map(e => Number(e));
 console.log(allowTelegramIds);
@@ -31,9 +30,9 @@ bot.setMyCommands([
     description: 'Добавить id страницы',
   },
   {
-    command: '/test',
-    description: 'test',
-  },
+    command: '/page',
+    description: 'Проверить ID страницы',
+  }
 ])
 
 bot.on('message', async msg => {
@@ -80,40 +79,46 @@ bot.on('message', async msg => {
         if (typeof newId.text !== 'string') {
           return bot.sendMessage(chatId, 'ID может быть только строкой!');
         } else {
+          console.log(newId.text);
           const result = await db.addPageId(msg.from.id, newId.text);
-          console.log(result);
 
-          return bot.sendMessage(chatId, `ID ${result} добавлено`);
+          if (result) {
+            return bot.sendMessage(chatId, 'ID добавлено');
+          } else {
+            return bot.sendMessage(chatId, 'Ошибка! Попробуйте еще раз');
+          }
         }
       }
     })
   }
 
-  if (text === '/test') {
-    await notion.createTask();
-    return bot.sendMessage(chatId, 'test');
+  if (text === '/page') {
+    if (msg.from?.id) {
+      const pageIdResult = await db.getPageId(msg.from.id);
+
+      return bot.sendMessage(chatId, `ID страницы - ${pageIdResult?.page_id}`);
+    } else {
+      return bot.sendMessage(chatId, 'Ошибка! Попробуйте еще раз');
+    }
   }
 
-  // return bot.sendMessage(chatId, 'Я тебя не понял =(. Попробуй еще раз.');
+  if (msg.from?.id && msg.text) {
+    try {
+      const pageIdResult = await db.getPageId(msg.from.id);
+
+      if (pageIdResult?.page_id) {
+        const taskResult = await notion.createTask(pageIdResult.page_id, msg.text);
+
+        if (taskResult) {
+          return bot.sendMessage(chatId, 'Задача добавлена ✅');
+        } else {
+          return bot.sendMessage(chatId, 'Ошибка! Попробуйте еще раз');
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  return bot.sendMessage(chatId, 'Я тебя не понял =(. Попробуй еще раз.');
 })
-
-// bot.command('check', async ctx => {
-//   if (ctx.from.username) {
-//     ctx.reply(`Проверяем ${ctx.from.username}`);
-//     await db.addUsername(ctx.from.username);
-//   } else {
-//     ctx.reply('Ошибка =(, ')
-//   }
-// });
-
-// bot.on('message', async function (ctx) {
-//   if (!(ctx.message && 'text' in ctx.message)) {
-//     await ctx.reply('Сообщение может быть только текстовым!');
-//     return;
-//   }
-
-//   const createTaskResult = await notion.createTask(ctx.message.text, ctx.message.from.username);
-//   const createdTaskMessage = 'Новая задача - [' + ctx.message.text + '](https://www.notion.so/' + notion.convertTaskToUrl(createTaskResult) + ')';
-
-//   await ctx.reply(createdTaskMessage);
-// });

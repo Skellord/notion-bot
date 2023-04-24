@@ -60,7 +60,15 @@ export default class DatabaseConnector {
 
   async addPageId(userId: number, pageId: string) {
     try {
-      return await this.db<User>(USERS).where('user_id', userId).insert({ page_id: pageId });
+      return await this.db<User>(USERS).where('user_id', userId).update({ page_id: pageId });
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async getPageId(userId: number) {
+    try {
+      return await this.db<User>(USERS).where('user_id', userId).first('page_id');
     } catch (err) {
       console.error(err);
     }
