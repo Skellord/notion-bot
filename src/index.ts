@@ -3,9 +3,12 @@ import { Client } from '@notionhq/client';
 import TelegramBot from 'node-telegram-bot-api';
 import NotionConnector from './notion';
 import DatabaseConnector from './db';
+import express from 'express';
 
 // initialization
 config();
+const port = process.env.PORT ?? 8080;
+const app = express();
 const bot = new TelegramBot(process.env.TELEGRAM_API_TOKEN as string, { polling: true });
 const notionCLient = new Client({ auth: process.env.NOTION_API_TOKEN });
 const notion = new NotionConnector(notionCLient);
@@ -122,3 +125,7 @@ bot.on('message', async msg => {
 
   return bot.sendMessage(chatId, 'Я тебя не понял =(. Попробуй еще раз.');
 })
+
+app.listen(port, () => {
+  console.log(`Server start on ${port}`);
+});
