@@ -32,4 +32,33 @@ export default class NotionConnector {
       console.error(err);
     }
   }
+
+  async createDatabaseTask(dbId: string, text: string) {
+    try {
+      return await this.notion.pages.create({
+        parent: {
+          database_id: dbId,
+        },
+        properties: {
+          Task: {
+            type: 'title',
+            title: [{
+              type: 'text',
+              text: {
+                content: text
+              }
+            }]
+          },
+          Status: {
+            type: 'select',
+            select: {
+              name: 'Backlog'
+            }
+          }
+        }
+      })
+    } catch (err) {
+      console.error(err);
+    }
+  }
 };
