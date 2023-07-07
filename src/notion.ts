@@ -49,10 +49,11 @@ export default class NotionConnector {
               }
             }]
           },
-          Status: {
-            type: 'select',
-            select: {
-              name: 'Backlog'
+          Inbox: {
+            type: 'status',
+            status: {
+              name: 'Backlog',
+              color: 'default',
             }
           }
         }

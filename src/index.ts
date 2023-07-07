@@ -196,7 +196,7 @@ bot.on('message', async msg => {
     }
   }
 
-  return bot.sendMessage(chatId, 'Я тебя не понял =(. Попробуй еще раз.');
+  // return bot.sendMessage(chatId, 'Я тебя не понял =(. Попробуй еще раз.');
 })
 
 app.listen(port, () => {
